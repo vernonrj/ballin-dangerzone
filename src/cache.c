@@ -63,3 +63,4 @@ void cache_reset(struct cache_t* cacheobj)
 	log(cacheobj->params.associativity) / log(2));
 
 }
+
