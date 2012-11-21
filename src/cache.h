@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-// Data Structures
+/*************************Data Structures************************************/
 
 /* status bits structure for each line
  */
@@ -21,12 +21,12 @@ struct line_t
     uint8_t  data[];	        // line data
 };
 
-// Set structure
+/* Set structure: 
+ * LRU space complexity N*log2(N)
+ */
 struct set_t
 {
-    uint8_t *lru;			// LRU bits:
-    int lrusize;			// number of bits in LRU
-					// Space complexity: N*log2(N)
+    uint16_t lru;			// LRU bits: max assoc limited to 2^16
     struct line_t *line[];		// lines in set
 };
 
@@ -51,6 +51,7 @@ struct cache_params_t
     size_t associativity;
     size_t line_size;
     size_t index_size;
+    int lrusize;           // number of bits used in LRU - Calculated
 };
 
 struct cache_statistics_t
@@ -75,14 +76,14 @@ struct cache_t
 };
 
 /***************** Cache API *************************************************/
-/* line size     = number of bytes in a line
- * index size    = number of sets  
- * associativity = number of lines per set 
+/* line size     = number of bytes in a line (should be a power of 2 (1 << N))
+ * index size    = number of sets  (should be a power of 2 (1 << N))
+ * associativity = number of lines per set (should be a power of 2 (1 << N))
  */
 
 struct cache_t* cache_new(size_t associativity, 
-			size_t line_size, 
 			size_t index_size,
+			size_t line_size, 
 			struct LN_ops_t interface);
 void cache_free(struct cache_t* cacheobj);
 void cache_reset(struct cache_t* cacheobj);
@@ -96,4 +97,3 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address);
 void cache_print(const struct cache_t* cacheobj);
 
 #endif //__CACHE_H__
-
