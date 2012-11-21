@@ -1,79 +1,20 @@
 #include "cache.h"
 #include <errno.h>
 
-//
-// initialization functions
 
-struct set_t *setInit(int linesize)
+/* 
+ *
+ */
+struct cache* cache_new(size_t associativity, size_t line_size, size_t index_size)
 {
-	// Initialize an individual set using linesize
-
-	int i;
-	struct set_t *set;
-
-	set = (struct set_t*)malloc(sizeof(struct set_t));
-	set->lines = (struct line_t**)malloc(linesize*sizeof(struct line_t*));
-	set->linesize = linesize;
-	// lru
-	//set->lrusize = linesize;
-	set->lru = (uint32_t*)malloc(linesize*sizeof(uint32_t));
-	for (i=0; i<linesize; i++)
-	{
-		set->lru[i] = linesize - i - 1;
-		set->lines[i] = (struct line_t*)malloc(sizeof(struct line_t));
-		set->lines[i]->status = MESI_INVALID;
-		set->lines[i]->data = NULL;
-	}
-
-	return set;
+    return NULL;
 }
-
-
-struct cache_t *cacheInit(enum Level_enum level, int linesize)
-{
-	// create the cache using specifications
-
-	int i;
-	struct cache_t *cache;
-	int setnum;
-
-
-
-	// Specify read/write handlers
-	switch (level)
-	{
-		case CACHE_L1:
-			// handlers specific to cache level
-			setnum = (int)pow(2, 14);
-			break;
-		case CACHE_L2:
-			// these handlers will be different from L1
-			setnum = 1;
-			break;
-		default:
-			// Fail gracefully
-			errno = EBADRQC;
-			perror("Cache Init: Unknown Cache Type");
-			exit(EXIT_FAILURE);
-			break;
-	}
-	cache = (struct cache_t*)malloc(sizeof(struct cache_t) + setnum*sizeof(struct set_t*));
-	cache->setsize = setnum;
-	// Initialize statistics
-	cache->c_reads = 0;
-	cache->c_writes = 0;
-	cache->c_hits = 0;
-	cache->c_misses = 0;
-	//cache->sets = (struct set_t**)malloc(setnum*sizeof(struct set_t*));
-	// initialize sets
-	for (i=0; i<setnum; i++)
-		cache->sets[i] = setInit(linesize);
-
-	return cache;
-}
-
-
 // LRU functions
+
+void cache_free(struct cache* cacheobj)
+{
+    //stub
+}
 
 uint32_t touchLRU(struct set_t *set, uint32_t way)
 {
