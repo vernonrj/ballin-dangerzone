@@ -114,6 +114,7 @@ void L1WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data,
 			if (VERBOSITY > 1)
 				printf("Evicting line %i.\n\t", line);
 			set->lines[line]->status = MESI_INVALID;
+			free(set->lines[line]->data);
 		}
 	}
 
