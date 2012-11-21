@@ -359,15 +359,15 @@ void L1PrintLine(struct cache_t *cache, uint32_t address)
 	uint32_t tag = getL1Tag(address),
 		 index = getL1Index(address),
 		 offset = getL1Offset(address);
-	struct set_t *set = cache->sets[index];
+	struct set_t *set = cache->set[index];
 	int line = findWithTag(set, tag);
 	const char mesistate[] = "MESI";
-	int mesi = set->lines[line]->status;
+	int mesi = set->line[line]->status;
 
 	if (line == -1)
 	{
 		printf("Line not present with address 0x%x\n", address);
-		printf("0x%x\n", (unsigned int)set->lines[3]->data);
+		printf("0x%x\n", (unsigned int)set->line[3]->data);
 		return;
 	}
 
@@ -376,7 +376,7 @@ void L1PrintLine(struct cache_t *cache, uint32_t address)
 	printf("%i\t", index);
 	printf("%i\t", line);
 	printf("%x\t", offset);
-	printf("0x%x\n", (unsigned int)set->lines[line]->data[offset]);
+	printf("0x%x\n", (unsigned int)set->line[line]->data[offset]);
 	printf("\n");
 
 	return;
@@ -388,7 +388,7 @@ void L1PrintCache(struct cache_t *cache)
 	// print all valid lines in the cache
 
 	int i, j, k;
-	struct set_t **sets = cache->sets;
+	struct set_t **sets = cache->set;
 	struct line_t **lines;
 	bool wrote_index = false;
 	const char mesistate[] = "MESI";
@@ -401,7 +401,7 @@ void L1PrintCache(struct cache_t *cache)
 
 	for (i=0; i<cache->setsize; i++)
 	{
-		lines = sets[i]->lines;
+		lines = sets[i]->line;
 		for (j=0; j<sets[i]->linesize; j++)
 		{
 			if (lines[j]->status != MESI_INVALID)
@@ -428,6 +428,6 @@ bool L1CheckAddress(struct cache_t *cache, uint32_t address)
 {
 	uint32_t tag = getL1Tag(address),
 		 index = getL1Index(address);
-	return setCheckTagExists(cache->sets, index, tag);
+	return setCheckTagExists(cache->set, index, tag);
 }
 
