@@ -19,7 +19,8 @@ uint32_t getL1Tag(uint32_t address)
 {
 	// wrapper for getting the tag of an L1 cache
 
-	return getL1Wrapper(address, &getTag);
+	//return getL1Wrapper(address, &getTag);
+	return address >> (OFFSETSIZE+INDEXSIZE);
 }
 
 
@@ -27,7 +28,8 @@ uint32_t getL1Index(uint32_t address)
 {
 	// wrapper for getting the index of an L1 cache
 
-	return getL1Wrapper(address, &getIndex);
+	//return getL1Wrapper(address, &getIndex);
+	return (address >> OFFSETSIZE) & ((0x1 << INDEXSIZE) -1);
 }
 
 
@@ -35,7 +37,8 @@ uint32_t getL1Offset(uint32_t address)
 {
 	// wrapper for getting the offset of an L1 cache
 
-	return getL1Wrapper(address, &getOffset);
+	//return getL1Wrapper(address, &getOffset);
+	return (address & ((0x1 << OFFSETSIZE) - 1));
 }
 
 
