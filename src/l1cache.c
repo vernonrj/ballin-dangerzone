@@ -49,7 +49,6 @@ bool setCheckTagExists(struct set_t **sets, uint32_t index, uint32_t tag)
 	// check to see if tag exists at index
 	// true:	tag exists
 	// false:	tag is missing
-
 	return (findWithTag(sets[index], tag)) != -1;
 }
 
@@ -77,12 +76,12 @@ void L1Reset(struct cache_t *cache)
 	uint32_t setsize, linesize;
 	struct set_t *set;
 	setsize = cache->setsize;
-	linesize = cache->sets[0]->linesize;
+	linesize = cache->set[0]->linesize;
 	for (i=0; i<setsize; i++)
 	{
-		set = cache->sets[i];
+		set = cache->set[i];
 		for (j=0; j<linesize; j++)
-			set->lines[j]->status = MESI_INVALID;
+			set->line[j]->status = MESI_INVALID;
 	}
 	return;
 }
@@ -97,7 +96,7 @@ void L1WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data,
 	uint32_t tag = getL1Tag(address),
 		 index = getL1Index(address),
 		 offset = getL1Offset(address);
-	struct set_t *set = cache->sets[index];
+	struct set_t *set = cache->set[index];
 	int line = findWithTag(set, tag);
 
 	if (line == -1)
@@ -110,30 +109,30 @@ void L1WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data,
 			if (VERBOSITY > 1)
 				printf("Dirty line at %i. Write to L2 and evict from L1\n\t", line);
 			L2WriteLine(L2, address, set->lines[line]->data, WRITE_ALLOCATE);
-			set->lines[line]->status = MESI_INVALID;
+			set->line[line]->status = MESI_INVALID;
 		}
-		else if (set->lines[line]->status != MESI_INVALID)
+		else if (set->line[line]->status != MESI_INVALID)
 		{
 			if (VERBOSITY > 1)
 				printf("Evicting line %i.\n\t", line);
-			set->lines[line]->status = MESI_INVALID;
-			free(set->lines[line]->data);
+			set->line[line]->status = MESI_INVALID;
+			free(set->line[line]->data);
 		}
 	}
 
 	// TODO: should we invalidate or write to lower-level caches?
-	lineInvalNextIfShared(cache, set->lines[line], address);
-	set->lines[line]->data = data;
+	lineInvalNextIfShared(cache, set->line[line], address);
+	set->line[line]->data = data;
 	if (writeType == WRITE_ALLOCATE)
 	{
 		if (L2CheckAddress(L2, address))
-			set->lines[line]->status = MESI_SHARED;
+			set->line[line]->status = MESI_SHARED;
 		else
-			set->lines[line]->status = MESI_EXCLUSIVE;
+			set->line[line]->status = MESI_EXCLUSIVE;
 	}
 	else
-		set->lines[line]->status = MESI_MODIFIED;
-	set->lines[line]->tag = tag;
+		set->line[line]->status = MESI_MODIFIED;
+	set->line[line]->tag = tag;
 	touchLRU(set, line);
 	if (VERBOSITY > 1)
 		printf("storing new value in line %i\n\t", line);
@@ -159,11 +158,11 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 		printf("L1:\tRead\n\t");
 
 	cache->c_reads++;
-	if (setCheckTagExists(cache->sets, index, tag))
+	if (setCheckTagExists(cache->set, index, tag))
 	{
 		// Cache Hit
 		local_hit = true;
-		set = cache->sets[index];
+		set = cache->set[index];
 		line = findWithTag(set, tag);
 		if (line == -1)
 		{
@@ -171,7 +170,7 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 			exit(EXIT_FAILURE);
 		}
 		touchLRU(set, line);
-		lineValue = set->lines[line]->data;
+		lineValue = set->line[line]->data;
 	}
 	else
 	{
@@ -211,13 +210,13 @@ void L1Write(struct cache_t *cache, uint32_t address, uint32_t data)
 	if (VERBOSITY)
 		printf("L1:\tWrite\n\t");
 
-	if (setCheckTagExists(cache->sets, index, tag))
+	if (setCheckTagExists(cache->set, index, tag))
 	{
 		// Cache Hit
 		local_hit = true;
-		set = cache->sets[index];
+		set = cache->set[index];
 		line = findWithTag(set, tag);
-		lineValue = set->lines[line]->data;
+		lineValue = set->line[line]->data;
 		//setWriteWord(cache, address, data, WRITE_MODIFY);
 	}
 	else
@@ -263,7 +262,7 @@ void L1Invalidate(struct cache_t *cache, uint32_t address)
 		printf("Invalidate L1 cache at address %i\n", address);
 	}
 
-	invalidateLRUWay(cache->sets[index], findWithTag(cache->sets[index], tag));
+	invalidateLRUWay(cache->set[index], findWithTag(cache->set[index], tag));
 
 	return;
 }
