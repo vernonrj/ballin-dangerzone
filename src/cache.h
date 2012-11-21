@@ -1,5 +1,5 @@
 #ifndef __CACHE_H__
-#def    __CACHE_H__
+#define __CACHE_H__
 
 // L1 Cache:
 // index = 14
