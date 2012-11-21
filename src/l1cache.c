@@ -8,12 +8,6 @@
 
 // Wrappers for decomposing the address into the tag, the index, and the offset
 
-uint32_t getL1Wrapper(uint32_t address, uint32_t (*fptr)(uint32_t, uint32_t, uint32_t))
-{
-	// call function given by fptr with appropriate arguments
-
-	return fptr(address, INDEXSIZE, OFFSETSIZE);
-}
 
 uint32_t getL1Tag(uint32_t address)
 {
@@ -42,14 +36,6 @@ uint32_t getL1Offset(uint32_t address)
 }
 
 
-bool lineIsValid(struct line_t *line)
-{
-	// check validity of line
-
-	return ((line->status & 3) != MESI_INVALID);
-}
-
-
 // Finding
 
 int findWithTag(struct set_t *set, uint32_t tag)
@@ -64,7 +50,8 @@ int findWithTag(struct set_t *set, uint32_t tag)
 
 	for (i=0; i<size; i++)
 	{
-		if ((lineIsValid(line[i]) && line[i]->tag == tag))
+		if (((line[i]->status & 0x3 != MESI_INVALID) 
+					&& line[i]->tag == tag))
 			return i;
 	}
 
@@ -425,12 +412,5 @@ void L1PrintCache(struct cache_t *cache)
 		wrote_index = false;
 	}
 	return;
-}
-
-bool L1CheckAddress(struct cache_t *cache, uint32_t address)
-{
-	uint32_t tag = getL1Tag(address),
-		 index = getL1Index(address);
-	return setCheckTagExists(cache->set, index, tag);
 }
 
