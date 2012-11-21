@@ -383,10 +383,11 @@ void L1PrintCache(struct cache_t *cache)
 	struct line_t **lines;
 	bool wrote_index = false;
 	const char mesistate[] = "MESI";
+	int data_size = cache->set[0]->line[0]->data_size;
 
 	printf("\nMemory Map:\n");
 	printf("MESI\tTAG\t");
-	for (i=0; i<LINESIZE; i++)
+	for (i=0; i<data_size; i++)
 		printf("    %x    ", i);
 	printf("\n");
 
@@ -405,7 +406,7 @@ void L1PrintCache(struct cache_t *cache)
 				printf("[%c]\t0x%.3x\t", 
 						mesistate[lines[j]->status], 
 						lines[j]->tag);
-				for (k=0; k<LINESIZE; k++)
+				for (k=0; k<data_size; k++)
 					printf("%.8x ", lines[j]->data[k]);
 				printf("\n");
 			}
