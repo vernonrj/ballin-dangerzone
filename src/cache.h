@@ -13,20 +13,22 @@ struct status_t
     unsigned dirty:1;
 };
 
-// Line Structure for every set
+/* Line Structure for every set
+ * LRU space complexity N*log2(N)
+ */
 struct line_t
 {
+    uint16_t lru;		// LRU bits: max assoc limited to 2^16
     uint32_t tag;               // cache tag
     struct status_t status;            // dirty and valid bits
     uint8_t  data[];	        // line data
 };
 
 /* Set structure: 
- * LRU space complexity N*log2(N)
  */
 struct set_t
 {
-    uint16_t lru;			// LRU bits: max assoc limited to 2^16
+    uint8_t stub;                       // TODO refactor to remove this stub
     struct line_t *line[];		// lines in set
 };
 

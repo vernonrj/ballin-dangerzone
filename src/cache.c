@@ -1,5 +1,7 @@
-#include <stdlib.h> //for size_t
+#include <stdbool.h>
+#include <stdlib.h>
 #include <math.h>   //for calculating bit vector sizes
+
 
 //TEMP INCLUDES
 #include <stdio.h>
@@ -58,9 +60,21 @@ void cache_free(struct cache_t* cacheobj)
 /* Clear Status bits and setup check LRU */
 void cache_reset(struct cache_t* cacheobj)
 {
+    struct status_t empty_status;
+    empty_status.valid = false;
+    empty_status.dirty = false;
 
     cacheobj->params.lru_bits = (uint16_t)(
 	log(cacheobj->params.associativity) / log(2));
+
+    for(int i = 0; i < cacheobj->params.index_size; ++i)
+    {
+	for(int j = 0; j < cacheobj->params.associativity; ++j)
+	{
+	    cacheobj->set[i]->line[j]->status = empty_status;
+	    cacheobj->set[i]->line[j]->lru = j; //Prime LRU values
+	}
+    }
 
 }
 
