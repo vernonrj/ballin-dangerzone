@@ -11,13 +11,22 @@
 #include <errno.h>
 #include "cache.h"
 
-//include "instruction_cache_model.h"
-//include "data_cache_model.h"
-
-//TODO come up with error.log
+//TODO add error.log
 
 /* Global Constants */
 static const unsigned long MAX_LINE = 1024;
+
+enum COMMANDS
+{
+    COMMAND_READ,
+    COMMAND_WRITE,
+    COMMAND_IFETCH,
+    COMMAND_INVALIDATE,
+    COMMAND_RESET = 8,
+    COMMAND_PRINT = 9,
+    COMMAND_END
+};
+
 
 /* Forward Declarations */
 void static execute(int op, uint32_t address);
