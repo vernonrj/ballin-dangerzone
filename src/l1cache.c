@@ -180,7 +180,8 @@ void L1WriteLine(struct cache_t *cache, uint32_t address,
 			// dirty line. Write to next level of cache
 			if (VERBOSITY > 1)
 				printf("Dirty line at %i. Write to L2 and evict from L1\n\t", line);
-			L2WriteLine(L2, address, set->lines[line]->data, WRITE_ALLOCATE);
+			cache->ln_ops.write(address, 64, set->line[line]->data);
+			//L2WriteLine(L2, address, set->line[line]->data, WRITE_ALLOCATE);
 			set->line[line]->status = MESI_INVALID;
 		}
 		else if (set->line[line]->status != MESI_INVALID)
