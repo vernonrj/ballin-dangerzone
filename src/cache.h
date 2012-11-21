@@ -66,9 +66,6 @@ struct LN_ops_t
 struct cache_t
 {
     // cache data structure
-    // TODO: declare set_t as 0-length array
-    // then malloc(sizeof(cache_t)+sizeof(N*set_t));
-    // declare as set_t[0]
     int setsize;     // number of sets
     int c_reads,     // cache statistics
 	c_writes,
