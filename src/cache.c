@@ -59,7 +59,7 @@ void cache_free(struct cache_t* cacheobj)
 void cache_reset(struct cache_t* cacheobj)
 {
 
-    cacheobj->params.lrusize = (uint32_t)(
+    cacheobj->params.lru_bits = (uint16_t)(
 	log(cacheobj->params.associativity) / log(2));
 
 }

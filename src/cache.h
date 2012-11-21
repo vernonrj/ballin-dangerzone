@@ -51,7 +51,7 @@ struct cache_params_t
     size_t associativity;
     size_t line_size;
     size_t index_size;
-    int lrusize;           // number of bits used in LRU - Calculated
+    uint16_t lru_bits;           // number of bits used in LRU - Calculated
 };
 
 struct cache_statistics_t
