@@ -12,7 +12,7 @@ void L2Reset(struct cache_t *cache)
 	return;
 }
 
-void L2WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data, enum Cache_Write_Type writetype)
+void L2WriteLine(struct cache_t *cache, uint32_t address, size_t length, uint8_t *data)
 {
 	// write a line to the L2 cache
 	// stub
@@ -24,27 +24,29 @@ void L2WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data, enum C
 	return;
 }
 
-uint32_t *L2Read(struct cache_t *cache, uint32_t address)
+void L2Read(struct cache_t *cache, uint32_t address, size_t length, uint8_t *data)
 {
 	// read from L2 cache
 	//printf("Read from L2\n");
 	int i;
-	uint32_t *line;
+	uint8_t *line;
 	uint32_t offset = getOffset(address, INDEXSIZE, OFFSETSIZE);
 	uint32_t index = getIndex(address, INDEXSIZE, OFFSETSIZE);
+	int data_size = cache->set[0]->line[0]->data_size;
 
-	line = (uint32_t*)malloc(LINESIZE*sizeof(uint32_t));
-	for (i=0; i<LINESIZE; i++)
+	line = (uint8_t*)malloc(data_size*sizeof(uint8_t));
+	for (i=0; i<data_size; i++)
 	{
 		//line[i] = i+(index << 4);
 		line[i] = 0x0;
 	}
 	line[offset] = address;
 
-	return line;
+	data = line;
+	return;
 }
 
-void L2Write(struct cache_t *cache, uint32_t address, uint32_t data)
+void L2Write(struct cache_t *cache, uint32_t address, size_t length, uint8_t *data)
 {
 	// write to L2 cache
 	//printf("Write to L2\n");
