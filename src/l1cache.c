@@ -148,7 +148,7 @@ void L1Reset(struct cache_t *cache)
 	uint32_t setsize, linesize;
 	struct set_t *set;
 	setsize = cache->setsize;
-	linesize = cache->set[0]->linesize;
+	linesize = cache->linesize;
 	for (i=0; i<setsize; i++)
 	{
 		set = cache->set[i];
@@ -384,7 +384,8 @@ void L1PrintCache(struct cache_t *cache)
 	struct line_t **lines;
 	bool wrote_index = false;
 	const char mesistate[] = "MESI";
-	int data_size = cache->set[0]->line[0]->data_size;
+	int data_size = cache->data_size;
+	int linesize = cache->linesize;
 
 	printf("\nMemory Map:\n");
 	printf("MESI\tTAG\t");
@@ -395,7 +396,7 @@ void L1PrintCache(struct cache_t *cache)
 	for (i=0; i<cache->setsize; i++)
 	{
 		lines = sets[i]->line;
-		for (j=0; j<sets[i]->linesize; j++)
+		for (j=0; j<linesize; j++)
 		{
 			if (lines[j]->status != MESI_INVALID)
 			{

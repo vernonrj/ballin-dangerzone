@@ -48,7 +48,7 @@ struct line_t
 struct set_t
 {
     uint32_t *lru;			// LRU bits:
-    int lrusize;			// number of bits in LRU
+    //int lrusize;			// number of bits in LRU
 					// Space complexity: N*log2(N)
     size_t linesize;			// number of lines per set
     struct line_t *line[];		// lines in set
@@ -67,6 +67,8 @@ struct cache_t
 {
     // cache data structure
     int setsize;     // number of sets
+    int linesize;    // number of lines per set
+    size_t data_size;// number of bytes in data
     int c_reads,     // cache statistics
 	c_writes,
 	c_hits,
