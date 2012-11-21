@@ -113,7 +113,7 @@ int findWithTag(struct set_t *set, uint32_t tag)
 
 	int i;
 	int size = set->linesize;
-	struct line_t **line = set->lines;
+	struct line_t **line = set->line;
 
 	for (i=0; i<size; i++)
 	{
@@ -141,7 +141,7 @@ void printStats(struct cache_t *cache, const char *name)
 }
 
 
-
+/*
 int main(int argc, char **argv)
 {
 	int i;
@@ -253,4 +253,4 @@ void set_destroy(struct set_t *set)
 	free(set);
 	return;
 }
-
+*/
