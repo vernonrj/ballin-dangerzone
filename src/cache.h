@@ -28,7 +28,7 @@ struct line_t
  */
 struct set_t
 {
-    uint8_t stub;                       // TODO refactor to remove this stub
+    uint8_t stub;                       // stub for internal set data
     struct line_t *line[];		// lines in set
 };
 
