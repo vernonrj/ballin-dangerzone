@@ -9,17 +9,14 @@
  */
 struct status_t
 {
-<<<<<<< Updated upstream
 	COMMAND_READ 		= 0,
 	COMMAND_WRITE 		= 1,
 	COMMAND_IFETCH 		= 2,		// read request from L1
 	COMMAND_INVALIDATE 	= 3,	// comes from L2
 	COMMAND_RESET 		= 8,	
 	COMMAND_PRINT 		= 9
-=======
     unsigned valid:1;
     unsigned dirty:1;
->>>>>>> Stashed changes
 };
 
 // Line Structure for every set
@@ -33,13 +30,10 @@ struct line_t
 // Set structure
 struct set_t
 {
-<<<<<<< Updated upstream
     uint32_t *lru;			// LRU bits:
     //int lrusize;			// number of bits in LRU
-=======
     uint8_t *lru;			// LRU bits:
     int lrusize;			// number of bits in LRU
->>>>>>> Stashed changes
 					// Space complexity: N*log2(N)
     struct line_t *line[];		// lines in set
 };
@@ -68,27 +62,24 @@ struct cache_params
 };
 
 struct cache_statistics_t
+{
+    unsigned valid:1;
+    unsigned dirty:1;
+};
 
 /* Main cache data structure */
 struct cache_t
 {
-<<<<<<< Updated upstream
     // cache data structure
     int setsize;     // number of sets
     int linesize;    // number of lines per set
     size_t data_size;// number of bytes in data
-    int c_reads,     // cache statistics
-	c_writes,
-	c_hits,
-	c_misses;
     struct LN_ops_t ln_ops;     //callbacks to the lower memory hierarchy
     struct set_t *set[];        //
-=======
     struct cache_statistics_t stats;
     struct cache_params_t     params; //size parameters of the cache
     struct LN_ops_t           ln_ops; //callbacks to the lower memory hierarchy
     struct set_t              *set[]; //
->>>>>>> Stashed changes
 };
 
 /***************** Cache API *************************************************/
