@@ -71,11 +71,20 @@ struct line_t
 struct set_t
 {
 	// individual set structure
-	struct line_t **lines;		// lines in set
 	uint32_t *lru;			// LRU bits:
 					// N*log2(N)
 	int linesize;			// number of lines per set
+	struct line_t **lines;		// lines in set
+	//struct line_t lines[];		// lines in set
        	//int lrusize;			// number of bits in LRU
+};
+
+
+struct LN_ops_t
+{
+	// address, data size, data
+	void (*read)(uint32_t, size_t, uint32_t*);
+	void (*write)(uint32_t, size_t, uint32_t*);
 };
 
 struct cache_t
@@ -84,12 +93,14 @@ struct cache_t
 	// TODO: declare set_t as 0-length array
 	// then malloc(sizeof(cache_t)+sizeof(N*set_t));
 	// declare as set_t[0]
-	struct set_t **sets;		// array of sets
 	int setsize;			// number of sets
 	int c_reads,			// cache statistics
 	    c_writes,
 	    c_hits,
 	    c_misses;
+	//struct set_t **sets;		// array of sets
+	struct LN_ops_t lnops;
+	struct set_t *sets[];
 };
 
 struct cache_t *L1I, *L1D, *L2;

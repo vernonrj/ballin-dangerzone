@@ -22,6 +22,7 @@ struct set_t *setInit(int linesize)
 		set->lru[i] = linesize - i - 1;
 		set->lines[i] = (struct line_t*)malloc(sizeof(struct line_t));
 		set->lines[i]->status = MESI_INVALID;
+		set->lines[i]->data = NULL;
 	}
 
 	return set;
@@ -36,13 +37,7 @@ struct cache_t *cacheInit(enum Level_enum level, int linesize)
 	struct cache_t *cache;
 	int setnum;
 
-	cache = (struct cache_t*)malloc(sizeof(struct cache_t));
 
-	// Initialize statistics
-	cache->c_reads = 0;
-	cache->c_writes = 0;
-	cache->c_hits = 0;
-	cache->c_misses = 0;
 
 	// Specify read/write handlers
 	switch (level)
@@ -62,8 +57,14 @@ struct cache_t *cacheInit(enum Level_enum level, int linesize)
 			exit(EXIT_FAILURE);
 			break;
 	}
+	cache = (struct cache_t*)malloc(sizeof(struct cache_t) + setnum*sizeof(struct set_t*));
 	cache->setsize = setnum;
-	cache->sets = (struct set_t**)malloc(setnum*sizeof(struct set_t*));
+	// Initialize statistics
+	cache->c_reads = 0;
+	cache->c_writes = 0;
+	cache->c_hits = 0;
+	cache->c_misses = 0;
+	//cache->sets = (struct set_t**)malloc(setnum*sizeof(struct set_t*));
 	// initialize sets
 	for (i=0; i<setnum; i++)
 		cache->sets[i] = setInit(linesize);
@@ -271,6 +272,7 @@ int main(int argc, char **argv)
 				printf("parsing error\n");
 		}
 	}
+	free(line);
 	fclose(fptr);
 
 
@@ -279,6 +281,9 @@ int main(int argc, char **argv)
 	printStats(L1D, "L1 Data Cache");
 
 	L1PrintCache(L1D);
+
+	cache_destroy(L1D);
+	cache_destroy(L1I);
 
 	return 0;
 }
