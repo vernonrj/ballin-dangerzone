@@ -16,56 +16,6 @@ void cache_free(struct cache* cacheobj)
     //stub
 }
 
-uint32_t touchLRU(struct set_t *set, uint32_t way)
-{
-	// update LRU 
-	int i;
-	uint32_t pivot = set->lru[way];
-
-	for (i=0; i<set->linesize; i++)
-	{
-		if (set->lru[i] < pivot)
-			set->lru[i]++;
-		else if (set->lru[i] == pivot)
-			set->lru[i] = 0x0;
-	}
-
-	return 0;
-}
-
-
-uint32_t findLRU(struct set_t *set)
-{
-	// return the least recently used way in a set
-	int i;
-
-	for (i=0; i<set->linesize; i++)
-	{
-		if (set->lru[i] == (set->linesize - 1))
-			return i;
-	}
-	return 0;
-}
-
-
-void invalidateLRUWay(struct set_t *set, uint32_t way)
-{
-	// set LRU way to least recently used
-
-	int i;
-	uint32_t pivot = set->lru[way];
-
-	for (i=0; i<set->linesize; i++)
-	{
-		if (i == way)
-			set->lru[i] = set->linesize - 1;
-		else if (set->lru[i] > pivot)
-			set->lru[i]--;
-	}
-
-	return;
-}
-
 
 // Address Decomposition
 
@@ -90,38 +40,6 @@ uint32_t getOffset(uint32_t address, uint32_t indexsize, uint32_t offsetsize)
 	// return the byte offset, right-justified
 
 	return (address & ((0x1 << offsetsize) - 1));
-}
-
-
-// Checking
-
-bool lineIsValid(struct line_t *line)
-{
-	// check validity of line
-
-	return ((line->status & 3) != MESI_INVALID);
-}
-
-
-// Finding
-
-int findWithTag(struct set_t *set, uint32_t tag)
-{
-	// return way that matches tag
-	// return -1 if cache miss
-	// don't touch LRU order
-
-	int i;
-	int size = set->linesize;
-	struct line_t **line = set->line;
-
-	for (i=0; i<size; i++)
-	{
-		if ((lineIsValid(line[i]) && line[i]->tag == tag))
-			return i;
-	}
-
-	return -1;
 }
 
 
