@@ -24,71 +24,71 @@ void static execute(int op, uint32_t address);
 /* Implementations */
 int main(int argc, char** argv)
 {
-  FILE*    t_fileh;
-  int      matched;
-  int      op;
-  uint32_t address; 
-  char line[MAX_LINE+1];
-   if(argc < 2)
+    FILE*    t_fileh;
+    int      matched;
+    int      op;
+    uint32_t address; 
+    char line[MAX_LINE+1];
+    if(argc < 2)
     {
-      printf("Usage: %s {tracefiles}\n", argv[0]);
-      return 0;
+	printf("Usage: %s {tracefiles}\n", argv[0]);
+	return 0;
     }
-   for(int i = 1; i < argc; i++) //For every tracefile passed to the input
+    for(int i = 1; i < argc; i++) //For every tracefile passed to the input
     {
-      t_fileh = fopen(argv[i], "r");
-      if(!t_fileh) //
+	t_fileh = fopen(argv[i], "r");
+	if(!t_fileh) //
 	{
-	  snprintf(line, MAX_LINE, "Skipping Entry %s", argv[i]);
-	  perror(line);
-	  continue;
+	    snprintf(line, MAX_LINE, "Skipping Entry %s", argv[i]);
+	    perror(line);
+	    continue;
 	}
-      while(fgets(line, MAX_LINE, t_fileh)) //get line until end of file
+	while(fgets(line, MAX_LINE, t_fileh)) //get line until end of file
 	{
-	  matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
-	  if (matched < 2)
+	    matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
+	    if (matched < 2)
 	    {
-	      fprintf(stderr, "Parsing Failed\n");
-	      continue;
+		fprintf(stderr, "Parsing Failed\n");
+		continue;
 	    }
-	  execute(op, address);
+	    execute(op, address);
 	}
 	//Clean up resources
 	if (fclose(t_fileh) == EOF)
-	  perror("Failed to release file handle, continuing anyway");
+	    perror("Failed to release file handle, continuing anyway");
 	t_fileh = 0;
     }
-  return 0;
+    return 0;
 }
 
 
 void static execute(int op, uint32_t address)
 {
-  //DELETE this line - For verbose checking
-  printf("Execute %d %x\n", op, address);
-  switch(op)
+    //DELETE this line - For verbose checking
+    printf("Execute %d %x\n", op, address);
+    switch(op)
     {
     case 0:
-      break;
+	break;
     case 1:
-      break;
+	break;
     case 2:
-      break;
+	break;
     case 3:
-      break;
+	break;
     case 4:
-      break;
+	break;
     case 5:
-      break;
+	break;
     case 6:
-      break;
+	break;
     case 7:
-      break;
+	break;
     case 8:
-      break;
+	break;
     case 9:
-      break;
+	break;
     default:
-      printf("Error: Invalid operation\n");
+	printf("Error: Invalid operation\n");
     }
 }
