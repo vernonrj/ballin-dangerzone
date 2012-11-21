@@ -232,8 +232,8 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 	// Read from the L1 cache
 
 	uint32_t tag = getL1Tag(address),
-		 index = getL1Index(address),
-		 *lineValue;
+		 index = getL1Index(address);
+	uint8_t *lineValue;
 	int line;
 	struct set_t *set;
 	bool local_hit;
@@ -260,7 +260,8 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 	{
 		// Cache Miss
 		local_hit = false;
-		lineValue = L2Read(L2, address);
+		//lineValue = L2Read(L2, address);
+		cache->ln_ops.read(address, 64, lineValue);
 		L1WriteLine(cache, address, lineValue, WRITE_ALLOCATE);
 	}
 	cache->c_hits += local_hit;
@@ -286,7 +287,7 @@ void L1Write(struct cache_t *cache, uint32_t address, uint32_t data)
 	uint32_t tag = getL1Tag(address),
 		 index = getL1Index(address),
 		 offset = getL1Offset(address);
-	uint32_t *lineValue;
+	uint8_t *lineValue;
 	struct set_t *set;
 	int line;
 	bool local_hit;
@@ -307,7 +308,8 @@ void L1Write(struct cache_t *cache, uint32_t address, uint32_t data)
 	{
 		// Cache Miss
 		local_hit = false;
-		lineValue = L2Read(L2, address);
+		//lineValue = L2Read(L2, address);
+		cache->ln_ops.read(address, 64, lineValue);
 	}
 
 	// update statistics
