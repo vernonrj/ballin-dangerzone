@@ -27,12 +27,12 @@ int VERBOSITY;
 
 enum Command_enum
 {
-	COMMAND_READ,
-	COMMAND_WRITE,
-	COMMAND_IFETCH,		// read request from L1
-	COMMAND_INVALIDATE,	// comes from L2
-	COMMAND_RESET,	
-	COMMAND_PRINT
+	COMMAND_READ 		= 0,
+	COMMAND_WRITE 		= 1,
+	COMMAND_IFETCH 		= 2,		// read request from L1
+	COMMAND_INVALIDATE 	= 3,	// comes from L2
+	COMMAND_RESET 		= 8,	
+	COMMAND_PRINT 		= 9
 };
 	
 // Line Structure

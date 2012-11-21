@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
+#include "cache.h"
 
 //include "instruction_cache_model.h"
 //include "data_cache_model.h"
@@ -68,25 +69,17 @@ void static execute(int op, uint32_t address)
     printf("Execute %d %x\n", op, address);
     switch(op)
     {
-    case 0:
+    case COMMAND_READ:		// (0)
 	break;
-    case 1:
+    case COMMAND_WRITE:		// (1)
 	break;
-    case 2:
+    case COMMAND_IFETCH:	// (2)
 	break;
-    case 3:
+    case COMMAND_INVALIDATE:	// (3)
 	break;
-    case 4:
+    case COMMAND_RESET:		// (8)
 	break;
-    case 5:
-	break;
-    case 6:
-	break;
-    case 7:
-	break;
-    case 8:
-	break;
-    case 9:
+    case COMMAND_PRINT:		// (9)
 	break;
     default:
 	printf("Error: Invalid operation\n");
