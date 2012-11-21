@@ -5,6 +5,7 @@
 #define OFFSETSIZE 4	// 4-bit offset
 #define TAGSIZE (32 - INDEXSIZE - OFFSETSIZE)
 
+void L1PrintLine(struct cache_t *cache, uint32_t address);
 
 // Wrappers for decomposing the address into the tag, the index, and the offset
 
