@@ -171,8 +171,8 @@ void L1Reset(struct cache_t *cache)
 }
 
 
-void L1WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data,
-		enum Cache_Write_Type writeType)
+void L1WriteLine(struct cache_t *cache, uint32_t address, 
+		size_t length, uint8_t *data)
 {
 	// write line with tag at index in set
 	// evict and writeback if necessary
@@ -227,7 +227,7 @@ void L1WriteLine(struct cache_t *cache, uint32_t address, uint32_t *data,
 
 // L1 Cache Read/Write Handlers
 
-uint32_t *L1Read(struct cache_t *cache, uint32_t address)
+void L1Read(struct cache_t *cache, uint32_t address, size_t length, uint8_t *data)
 {
 	// Read from the L1 cache
 
@@ -262,7 +262,7 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 		local_hit = false;
 		//lineValue = L2Read(L2, address);
 		cache->ln_ops.read(address, 64, lineValue);
-		L1WriteLine(cache, address, lineValue, WRITE_ALLOCATE);
+		L1WriteLine(cache, address, 64, lineValue);
 	}
 	cache->c_hits += local_hit;
 	cache->c_misses += !local_hit;
@@ -275,12 +275,13 @@ uint32_t *L1Read(struct cache_t *cache, uint32_t address)
 		L1PrintLine(cache, address);
 	}
 
-	return lineValue;
+	data = lineValue;
+	return;
 }
 
 
 
-void L1Write(struct cache_t *cache, uint32_t address, uint32_t data)
+void L1Write(struct cache_t *cache, uint32_t address, size_t length, uint8_t data)
 {
 	// Write to L1 cache
 
@@ -319,7 +320,7 @@ void L1Write(struct cache_t *cache, uint32_t address, uint32_t data)
 
 	// store data
 	lineValue[offset] = data;
-	L1WriteLine(cache, address, lineValue, WRITE_MODIFY);
+	L1WriteLine(cache, address, 64, lineValue);
 
 	if (VERBOSITY)
 	{
