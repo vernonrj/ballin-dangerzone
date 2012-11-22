@@ -9,6 +9,46 @@
 //Local includes
 #include "cache.h"
 
+int cache_lru_get_oldest_line(struct cache_t* cacheobj, uint32_t address)
+{
+	union bitfield_u bitfield;
+	uint32_t tag, index, offset;
+	struct set_t *set;
+
+	bitfield.address = address;
+	tag = bitfield.field.tag;
+	index = bitfield.field.index;
+
+	set = cacheobj->set[index];
+	for (int i=0; i<cacheobj->linesize; i++)
+	{
+		if (set->line[i]->lru == cacheobj->linesize-1)
+			return i;
+	}
+	return -1;
+}
+
+bool cache_address_resident(struct cache_t* cacheobj, uint32_t address)
+{
+	union bitfield_u bitfield;
+	uint32_t tag, index, offset;
+	struct set_t *set;
+
+	bitfield.address = address;
+	tag = bitfield.field.tag;
+	index = bitfield.field.index;
+	offset = bitfield.field.offset;
+
+	set = cacheobj->set[index];
+	for (int i=0; i<cacheobj->linesize; i++)
+	{
+		if (set->line[i]->tag == tag)
+			return true;
+	}
+	return false;
+}
+
+
 /* Allocates a new cache object with the following parameters
  *
  */
@@ -77,4 +117,19 @@ void cache_reset(struct cache_t* cacheobj)
     }
 
 }
+
+/* Do a read operation */
+void cache_readop(struct cache_t* cacheobj, uint32_t address)
+{
+	if (cache_address_resident(cacheobj, address))
+	{
+		// Cache Hit
+	}
+	else
+	{
+		// Cache Miss
+	}
+	return;
+}
+
 
