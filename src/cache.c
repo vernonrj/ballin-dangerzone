@@ -145,20 +145,25 @@ void cache_reset(struct cache_t* cacheobj)
 /* Do a read operation */
 void cache_readop(struct cache_t* cacheobj, uint32_t address)
 {
+	union bitfield_u bitfield = {address};
+	uint32_t index = bitfield.field.index;
 	uint16_t way;
+	uint8_t* data;
 	++cacheobj->stats.reads;
 	if (cache_address_resident(cacheobj, address, &way))
 	{
 		// Cache Hit
 		++cacheobj->stats.hits;
-		cache_lru_update_way(cacheobj, address, way);
 	}
 	else
 	{
 		// Cache Miss
 		++cacheobj->stats.misses;
 		way = cache_lru_get_oldest_line(cacheobj, address);
+		cacheobj->ln_ops.read(address, 16, data);
+		//cacheobj->set[index]->line[way] = data;
 	}
+	cache_lru_update_way(cacheobj, address, way);
 	return;
 }
 
