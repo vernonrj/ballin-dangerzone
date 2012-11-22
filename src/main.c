@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     //caches
     struct cache_t *L1_instruction = cache_new(2, 1024, 64, L2_hooks);
-    struct cache_t *L1_data        = cache_new(2, 1024, 64, L2_hooks);
+    struct cache_t *L1_data        = cache_new(4, 1024, 64, L2_hooks);
 
     if(argc < 2)
     {
