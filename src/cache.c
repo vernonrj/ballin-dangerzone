@@ -9,7 +9,7 @@
 //Local includes
 #include "cache.h"
 
-int cache_lru_get_oldest_line(struct cache_t* cacheobj, uint32_t address)
+uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, uint32_t address)
 {
 	union bitfield_u bitfield;
 	uint32_t tag, index, offset;
@@ -28,7 +28,28 @@ int cache_lru_get_oldest_line(struct cache_t* cacheobj, uint32_t address)
 	return -1;
 }
 
-bool cache_address_resident(struct cache_t* cacheobj, uint32_t address)
+void cache_lru_update_way(struct cache_t* cacheobj, uint32_t address,
+		uint16_t way)
+{
+	union bitfield_u bitfield = {address};
+	uint32_t index = bitfield.field.index;
+	struct set_t* set = cacheobj->set[index];
+	uint16_t pivot = set->line[way]->lru;
+
+	for (int i=0; i<cacheobj->linesize; i++)
+	{
+		if (i == way)
+			set->line[way]->lru = 0;
+		else if (set->line[way]->lru < pivot)
+			++set->line[way]->lru;
+	}
+	return;
+}
+
+
+
+bool cache_address_resident(struct cache_t* cacheobj, uint32_t address,
+		uint16_t *way)
 {
 	union bitfield_u bitfield;
 	uint32_t tag, index, offset;
@@ -43,7 +64,10 @@ bool cache_address_resident(struct cache_t* cacheobj, uint32_t address)
 	for (int i=0; i<cacheobj->linesize; i++)
 	{
 		if (set->line[i]->tag == tag)
+		{
+			*way = i;
 			return true;
+		}
 	}
 	return false;
 }
@@ -121,13 +145,19 @@ void cache_reset(struct cache_t* cacheobj)
 /* Do a read operation */
 void cache_readop(struct cache_t* cacheobj, uint32_t address)
 {
-	if (cache_address_resident(cacheobj, address))
+	uint16_t way;
+	++cacheobj->stats.reads;
+	if (cache_address_resident(cacheobj, address, &way))
 	{
 		// Cache Hit
+		++cacheobj->stats.hits;
+		cache_lru_update_way(cacheobj, address, way);
 	}
 	else
 	{
 		// Cache Miss
+		++cacheobj->stats.misses;
+		way = cache_lru_get_oldest_line(cacheobj, address);
 	}
 	return;
 }
