@@ -5,6 +5,19 @@
 
 /*************************Data Structures************************************/
 
+/* bitfield structure for decomposing addres
+ */
+union bitfield_u
+{
+	uint32_t address;
+	struct
+	{
+		unsigned offset:6;	// byte offset (64B)
+		unsigned index:14;	// index (16K)
+		unsigned tag:12;
+	} field;
+};
+
 /* status bits structure for each line
  */
 struct status_t
