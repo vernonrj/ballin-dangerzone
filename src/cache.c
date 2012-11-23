@@ -25,6 +25,10 @@ static uint32_t address_get_index(const struct cache_params_t* params,
 static uint32_t address_get_byte_offset(const struct cache_params_t* params,
 					uint32_t address);
 
+// for no op callbacks
+op_status_t null_fop(uint32_t address, size_t length, uint8_t* data){ return 0;}; 
+
+
 /* Allocates a new cache object with the following parameters
  *
  */
@@ -35,11 +39,18 @@ struct cache_t* cache_new(size_t associativity,
 {
     struct cache_t* new_cache = malloc(sizeof(struct cache_t) + 
 				     index_size*sizeof(struct set_t*));
+
     if(!new_cache) return NULL; //watch for malloc errors
     //Set Parameter structure
     new_cache->params.associativity = associativity;
     new_cache->params.line_size = line_size;
     new_cache->params.index_size = index_size;
+
+    //Set LN_ops
+    new_cache->ln_ops.read = interface.read   ? interface.read  : null_fop;
+    new_cache->ln_ops.write = interface.write ? interface.write : null_fop;
+    new_cache->ln_ops.modified = 
+	interface.modified ? interface.modified : null_fop;
 
     //Allocate Sets
     for(int i = 0; i < index_size; ++i)
@@ -174,14 +185,12 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
     {
 	// Evict LRU by writeback if dirty
 	if(line->status.dirty)
-	    if(cacheobj->ln_ops.write) // if there's a writeback execute it
-		cacheobj->ln_ops.write(address, 
-				       cacheobj->params.line_size, 
-				       line->data);
-	if(cacheobj->ln_ops.read) //get data and load it into cache line
-	    cacheobj->ln_ops.read(address, 
-				  cacheobj->params.line_size, 
-				  line->data);
+	    cacheobj->ln_ops.write(address, 
+				   cacheobj->params.line_size, 
+				   line->data);
+	cacheobj->ln_ops.read(address, 
+			      cacheobj->params.line_size, 
+			      line->data);
 	line = cacheobj->set[index]->line[lru];
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
     }
