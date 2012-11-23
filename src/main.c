@@ -103,13 +103,13 @@ void static execute(struct cache_t* instruction,
     switch(op)
     {
     case COMMAND_READ:		// (0)
-//	cache_readop(data, address);
+	cache_readop(data, address);
 	break;
     case COMMAND_WRITE:		// (1)
-//	cache_writeop(data, address);
+	cache_writeop(data, address);
 	break;
     case COMMAND_IFETCH:	// (2)
-//	cache_readop(instruction, address);
+	cache_readop(instruction, address);
 	break;
     case COMMAND_INVALIDATE:	// (3)
 	cache_invalidate(data, address);

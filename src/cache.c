@@ -228,11 +228,12 @@ static uint32_t address_get_tag(const struct cache_params_t* params,
 static uint32_t address_get_index(const struct cache_params_t* params,
 				      uint32_t address)
 {
-    uint32_t mask  = ~0; //Fill with 0xFF
-    uint32_t index_bit_size = log2(params->index_size);
-    mask = mask << (uint32_t)(log2(params->line_size) + index_bit_size);
+    uint32_t index = address >> (uint32_t)log2(params->line_size);
+    uint32_t field = ~0 << (uint32_t)log2(params->index_size);
+
+    index = index & ~field;
     
-    return (address & mask) >> index_bit_size;
+    return index;
 }
 
 static uint32_t address_get_byte_offset(const struct cache_params_t* params,
