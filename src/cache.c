@@ -11,14 +11,11 @@
 
 
 /* Forward Declaration */
-static uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, 
-					  uint32_t address);
-static void cache_lru_update_way(struct cache_t* cacheobj, 
-				 uint32_t address,
-				 uint16_t way);
-static bool cache_address_resident(struct cache_t* cacheobj, 
-				   uint32_t address,
-				   uint16_t *way);
+static void lru_update_set(const struct cache_params_t* params, 
+			   struct set_t* set,
+			   uint16_t way);
+
+static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address);
 
   // Address access functions
 static uint32_t address_get_tag(const struct cache_params_t* params,
@@ -97,99 +94,106 @@ void cache_reset(struct cache_t* cacheobj)
 
 }
 
+/******************* CACHE IMPLEMENTATION FUNCTIONS ************************/
 
 /* Do a read operation */
-void cache_readop(struct cache_t* cacheobj, uint32_t address)
+uint8_t* cache_readop(struct cache_t* cacheobj, uint32_t address)
 {
-    uint32_t index = address_get_index(&cacheobj->params, address);
-    uint16_t way;
-    size_t line_size = cacheobj->params.line_size;
-    uint8_t* data;
+    uint32_t byte_offset = address_get_byte_offset(&cacheobj->params, address); 
+
     ++cacheobj->stats.reads;
-    if (cache_address_resident(cacheobj, address, &way))
-    {
-	// Cache Hit
-	++cacheobj->stats.hits;
-    }
-    else
-    {
-	// Cache Miss
-	++cacheobj->stats.misses;
-	way = cache_lru_get_oldest_line(cacheobj, address);
-	cacheobj->ln_ops.read(address, line_size, data);
-	//cacheobj->set[index]->line[way] = data;
-    }
-    cache_lru_update_way(cacheobj, address, way);
-    return;
+    struct line_t* line = cache_access(cacheobj, address);
+    return &line->data[byte_offset];
+
+}
+
+
+uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address)
+{
+    uint32_t byte_offset = address_get_byte_offset(&cacheobj->params, address); 
+
+    ++cacheobj->stats.writes;
+    struct line_t* line = cache_access(cacheobj, address);
+    return &line->data[byte_offset];
+
 }
 
 
 /******************** Internal Module Functions *******************/
 
-static uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, 
-					  uint32_t address)
+/* processes the internal cache structures and returns a line to write data
+*  or read from it.*/
+static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
 {
-	uint32_t tag, index, offset;
-	struct set_t *set;
+    const struct cache_params_t* params = &cacheobj->params;
+    uint32_t index = address_get_index(params, address);
+    uint32_t tag   = address_get_tag(params, address);
+    struct line_t* line;
+    int lru     = 0;
+    int invalid = -1;
 
-	tag              = address_get_tag(&cacheobj->params, address);
-	index            = address_get_index(&cacheobj->params, address);
-	offset           = address_get_byte_offset(&cacheobj->params, address);
+    // Search in the set for valid invalid entries etc..
+    for(int i = 0; i < params->associativity; ++i)
+    {
+	line = cacheobj->set[index]->line[i];
 
-	set = cacheobj->set[index];
-	for (int i=0; i<cacheobj->linesize; i++)
+	if(line->status.valid) //find valid match
 	{
-		if (set->line[i]->lru == cacheobj->linesize-1)
-			return i;
+	    if(tag == line->tag) //Match tags
+	    {
+		// Hit
+		++cacheobj->stats.hits;
+		lru_update_set(&cacheobj->params, 
+			       cacheobj->set[index], 
+			       i);
+		return line;
+	    }
+	    else //look for LRU
+	    {
+    	      	lru = line->lru > cacheobj->set[index]->line[lru]->lru ? 
+		    i : lru;
+	    }
 	}
-	return -1;
+	else 
+	    invalid = i;
+    }
+    ++cacheobj->stats.misses;
+
+    // Cache Miss 
+    if(-1 < invalid) // if there is an invalid use it
+    {
+	line = cacheobj->set[index]->line[invalid];
+	line->status.valid = true;
+	lru_update_set(&cacheobj->params, cacheobj->set[index], invalid);
+    }
+    else            // if not use the lru
+    {
+	// Evict LRU by writeback if dirty
+	if(line->status.dirty) 
+	    cacheobj->ln_ops.write(address, 
+				   cacheobj->params.line_size, 
+				   line->data);
+	line = cacheobj->set[index]->line[lru];
+	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
+    }
+    return line;
 }
 
-
-static void cache_lru_update_way(struct cache_t* cacheobj, 
-				 uint32_t address,
-				 uint16_t way)
+/* Updates the sets LRU values depending on the way just accessed */
+static void lru_update_set(const struct cache_params_t* params, 
+			   struct set_t* set,
+			   uint16_t way)
 {
-    uint32_t index    = address_get_index(&cacheobj->params, address);
-    struct set_t* set = cacheobj->set[index];
-    
     uint16_t pivot = set->line[way]->lru;
-    
-    for (int i=0; i < cacheobj->linesize; i++)
+
+    for (int i = 0; i < params->associativity; ++i)
     {
-	if (i == way)
+	if(i == way)
 	    set->line[way]->lru = 0;
 	else if (set->line[way]->lru < pivot)
 	    ++set->line[way]->lru;
     }
-    return;
 }
-
-
-
-static bool cache_address_resident(struct cache_t* cacheobj, 
-			    uint32_t address,
-			    uint16_t *way)
-{
-	uint32_t tag, index, offset;
-	struct set_t *set;
-
-	tag    = address_get_tag        (&cacheobj->params, address);
-	index  = address_get_index      (&cacheobj->params, address);
-	offset = address_get_byte_offset(&cacheobj->params, address);
-
-	set = cacheobj->set[index];
-	for (int i=0; i<cacheobj->linesize; i++)
-	{
-		if (set->line[i]->tag == tag)
-		{
-			*way = i;
-			return true;
-		}
-	}
-	return false;
-}
-
 
 /*********************** Address access functions ***************************/
 
