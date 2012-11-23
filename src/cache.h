@@ -5,19 +5,6 @@
 
 /*************************Data Structures************************************/
 
-/* bitfield structure for decomposing addres
- */
-union bitfield_u
-{
-	uint32_t address;
-	struct
-	{
-		unsigned offset:6;	// byte offset (64B)
-		unsigned index:14;	// index (16K)
-		unsigned tag:12;
-	} field;
-};
-
 /* status bits structure for each line
  */
 struct status_t
@@ -91,9 +78,9 @@ struct cache_t
 };
 
 /***************** Cache API *************************************************/
-/* line size     = number of bytes in a line (should be a power of 2 (1 << N))
- * index size    = number of sets  (should be a power of 2 (1 << N))
- * associativity = number of lines per set (should be a power of 2 (1 << N))
+/* line size     = number of bytes in a line (must be a power of 2 (1 << N))
+ * index size    = number of sets  (must be a power of 2 (1 << N))
+ * associativity = number of lines per set (must be a power of 2 (1 << N))
  */
 
 struct cache_t* cache_new(size_t associativity, 

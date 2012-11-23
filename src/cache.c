@@ -9,69 +9,24 @@
 //Local includes
 #include "cache.h"
 
-uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, uint32_t address)
-{
-	union bitfield_u bitfield;
-	uint32_t tag, index, offset;
-	struct set_t *set;
 
-	bitfield.address = address;
-	tag = bitfield.field.tag;
-	index = bitfield.field.index;
+/* Forward Declaration */
+static uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, 
+					  uint32_t address);
+static void cache_lru_update_way(struct cache_t* cacheobj, 
+				 uint32_t address,
+				 uint16_t way);
+static bool cache_address_resident(struct cache_t* cacheobj, 
+				   uint32_t address,
+				   uint16_t *way);
 
-	set = cacheobj->set[index];
-	for (int i=0; i<cacheobj->linesize; i++)
-	{
-		if (set->line[i]->lru == cacheobj->linesize-1)
-			return i;
-	}
-	return -1;
-}
-
-void cache_lru_update_way(struct cache_t* cacheobj, uint32_t address,
-		uint16_t way)
-{
-	union bitfield_u bitfield = {address};
-	uint32_t index = bitfield.field.index;
-	struct set_t* set = cacheobj->set[index];
-	uint16_t pivot = set->line[way]->lru;
-
-	for (int i=0; i<cacheobj->linesize; i++)
-	{
-		if (i == way)
-			set->line[way]->lru = 0;
-		else if (set->line[way]->lru < pivot)
-			++set->line[way]->lru;
-	}
-	return;
-}
-
-
-
-bool cache_address_resident(struct cache_t* cacheobj, uint32_t address,
-		uint16_t *way)
-{
-	union bitfield_u bitfield;
-	uint32_t tag, index, offset;
-	struct set_t *set;
-
-	bitfield.address = address;
-	tag = bitfield.field.tag;
-	index = bitfield.field.index;
-	offset = bitfield.field.offset;
-
-	set = cacheobj->set[index];
-	for (int i=0; i<cacheobj->linesize; i++)
-	{
-		if (set->line[i]->tag == tag)
-		{
-			*way = i;
-			return true;
-		}
-	}
-	return false;
-}
-
+  // Address access functions
+static uint32_t address_get_tag(const struct cache_params_t* params,
+				uint32_t address);
+static uint32_t address_get_index(const struct cache_params_t* params,
+				  uint32_t address);
+static uint32_t address_get_byte_offset(const struct cache_params_t* params,
+					uint32_t address);
 
 /* Allocates a new cache object with the following parameters
  *
@@ -142,29 +97,127 @@ void cache_reset(struct cache_t* cacheobj)
 
 }
 
+
 /* Do a read operation */
 void cache_readop(struct cache_t* cacheobj, uint32_t address)
 {
-	union bitfield_u bitfield = {address};
-	uint32_t index = bitfield.field.index;
-	uint16_t way;
-	uint8_t* data;
-	++cacheobj->stats.reads;
-	if (cache_address_resident(cacheobj, address, &way))
-	{
-		// Cache Hit
-		++cacheobj->stats.hits;
-	}
-	else
-	{
-		// Cache Miss
-		++cacheobj->stats.misses;
-		way = cache_lru_get_oldest_line(cacheobj, address);
-		cacheobj->ln_ops.read(address, 16, data);
-		//cacheobj->set[index]->line[way] = data;
-	}
-	cache_lru_update_way(cacheobj, address, way);
-	return;
+    uint32_t index = address_get_index(&cacheobj->params, address);
+    uint16_t way;
+    size_t line_size = cacheobj->params.line_size;
+    uint8_t* data;
+    ++cacheobj->stats.reads;
+    if (cache_address_resident(cacheobj, address, &way))
+    {
+	// Cache Hit
+	++cacheobj->stats.hits;
+    }
+    else
+    {
+	// Cache Miss
+	++cacheobj->stats.misses;
+	way = cache_lru_get_oldest_line(cacheobj, address);
+	cacheobj->ln_ops.read(address, line_size, data);
+	//cacheobj->set[index]->line[way] = data;
+    }
+    cache_lru_update_way(cacheobj, address, way);
+    return;
 }
 
 
+/******************** Internal Module Functions *******************/
+
+static uint16_t cache_lru_get_oldest_line(struct cache_t* cacheobj, 
+					  uint32_t address)
+{
+	uint32_t tag, index, offset;
+	struct set_t *set;
+
+	tag              = address_get_tag(&cacheobj->params, address);
+	index            = address_get_index(&cacheobj->params, address);
+	offset           = address_get_byte_offset(&cacheobj->params, address);
+
+	set = cacheobj->set[index];
+	for (int i=0; i<cacheobj->linesize; i++)
+	{
+		if (set->line[i]->lru == cacheobj->linesize-1)
+			return i;
+	}
+	return -1;
+}
+
+
+static void cache_lru_update_way(struct cache_t* cacheobj, 
+				 uint32_t address,
+				 uint16_t way)
+{
+    uint32_t index    = address_get_index(&cacheobj->params, address);
+    struct set_t* set = cacheobj->set[index];
+    
+    uint16_t pivot = set->line[way]->lru;
+    
+    for (int i=0; i < cacheobj->linesize; i++)
+    {
+	if (i == way)
+	    set->line[way]->lru = 0;
+	else if (set->line[way]->lru < pivot)
+	    ++set->line[way]->lru;
+    }
+    return;
+}
+
+
+
+static bool cache_address_resident(struct cache_t* cacheobj, 
+			    uint32_t address,
+			    uint16_t *way)
+{
+	uint32_t tag, index, offset;
+	struct set_t *set;
+
+	tag    = address_get_tag        (&cacheobj->params, address);
+	index  = address_get_index      (&cacheobj->params, address);
+	offset = address_get_byte_offset(&cacheobj->params, address);
+
+	set = cacheobj->set[index];
+	for (int i=0; i<cacheobj->linesize; i++)
+	{
+		if (set->line[i]->tag == tag)
+		{
+			*way = i;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+/*********************** Address access functions ***************************/
+
+// returns only the tag bits in an address
+static uint32_t address_get_tag(const struct cache_params_t* params,
+				uint32_t address)
+{
+    uint32_t ntag_bit_size = log2(params->line_size) + log2(params->index_size);
+    uint32_t tag = address >> ntag_bit_size; //mask out lower bits
+    return tag;
+}
+
+// returns only the set index given an address
+static uint32_t address_get_index(const struct cache_params_t* params,
+				      uint32_t address)
+{
+    uint32_t mask  = ~0; //Fill with 0xFF
+    uint32_t index_bit_size = log2(params->index_size);
+    mask = mask << (uint32_t)(log2(params->line_size) + index_bit_size);
+    
+    return (address & mask) >> index_bit_size;
+}
+
+static uint32_t address_get_byte_offset(const struct cache_params_t* params,
+					uint32_t address)
+{
+    size_t line_index = log2(params->line_size);
+    uint32_t field = ~0; //Fill with 0xFF..
+    line_index = (field >> (32 - line_index)) & address; //mask out upper bits
+    return line_index;
+}
