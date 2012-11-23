@@ -118,6 +118,10 @@ uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address)
 
 }
 
+void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
+{
+    //TODO implement
+}
 
 /******************** Internal Module Functions *******************/
 
@@ -169,10 +173,15 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
     else            // if not use the lru
     {
 	// Evict LRU by writeback if dirty
-	if(line->status.dirty) 
-	    cacheobj->ln_ops.write(address, 
-				   cacheobj->params.line_size, 
-				   line->data);
+	if(line->status.dirty)
+	    if(cacheobj->ln_ops.write) // if there's a writeback execute it
+		cacheobj->ln_ops.write(address, 
+				       cacheobj->params.line_size, 
+				       line->data);
+	if(cacheobj->ln_ops.read) //get data and load it into cache line
+	    cacheobj->ln_ops.read(address, 
+				  cacheobj->params.line_size, 
+				  line->data);
 	line = cacheobj->set[index]->line[lru];
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
     }

@@ -93,7 +93,7 @@ void cache_reset(struct cache_t* cacheobj);
 // input operations - assumes access does not span a cache line boundary
 uint8_t* cache_readop(struct cache_t* cacheobj, uint32_t address);
 uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address);
-uint8_t* cache_invalidate(struct cache_t* cacheobj, uint32_t address);
+void cache_invalidate(struct cache_t* cacheobj, uint32_t address);
 
 // debuging functions
 void cache_print(const struct cache_t* cacheobj);
