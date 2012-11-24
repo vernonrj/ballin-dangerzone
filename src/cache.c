@@ -134,6 +134,11 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
     //TODO implement
 }
 
+void cache_print(const struct cache_t* cacheobj)
+{
+    //TODO implemnt
+}
+
 /******************** Internal Module Functions *******************/
 
 /* processes the internal cache structures and returns a line to write data
@@ -236,6 +241,7 @@ static uint32_t address_get_index(const struct cache_params_t* params,
     return index;
 }
 
+// returns the byte offset of an address
 static uint32_t address_get_byte_offset(const struct cache_params_t* params,
 					uint32_t address)
 {

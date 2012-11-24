@@ -60,8 +60,9 @@ int main(int argc, char** argv)
 
     /* Setup Cache */
     
+    cache_reset(L1_instruction);
+    cache_reset(L1_data);
 
-    /* Run Test Files - TODO: Should probably clear cache between files */
     for(int i = 1; i < argc; i++) //For every tracefile passed to the input
     {
 	t_fileh = fopen(argv[i], "r");
@@ -74,7 +75,7 @@ int main(int argc, char** argv)
 	while(fgets(line, MAX_LINE, t_fileh)) //get line until end of file
 	{
 	    matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
-	    if (matched < 2)
+	    if (matched < 2) //TODO allow certain opcodes to not have an address
 	    {
 		fprintf(stderr, "Parsing Failed\n");
 		continue;
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-
+/****************** Internal Implementation **********************/
 void static execute(struct cache_t* instruction, 
 		    struct cache_t* data, 
 		    int op, 
@@ -115,11 +116,14 @@ void static execute(struct cache_t* instruction,
 	cache_invalidate(data, address);
 	break;
     case COMMAND_RESET:		// (8)
+	cache_reset(instruction);
 	cache_reset(data);
 	break;
     case COMMAND_PRINT:		// (9)
+	cache_print(instruction);
+	cache_print(data);
 	break;
     default:
-	printf("Error: Invalid operation\n");
+	fprintf(stderr, "Error: Invalid operation %d  \n", op);
     }
 }
