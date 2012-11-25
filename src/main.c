@@ -100,7 +100,6 @@ void static execute(struct cache_t* instruction,
 		    uint32_t address)
 {
     //DELETE this line - For verbose checking
-    printf("Execute %d %x\n", op, address);
     switch(op)
     {
     case COMMAND_READ:		// (0)
@@ -120,7 +119,9 @@ void static execute(struct cache_t* instruction,
 	cache_reset(data);
 	break;
     case COMMAND_PRINT:		// (9)
+	printf("Printing Instruction Cache\n");
 	cache_print(instruction);
+	printf("Printing Data Cache\n");
 	cache_print(data);
 	break;
     default:

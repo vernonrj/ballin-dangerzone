@@ -67,10 +67,6 @@ struct cache_statistics_t
 /* Main cache data structure */
 struct cache_t
 {
-    // cache data structure
-    int setsize;     // number of sets
-    int linesize;    // number of lines per set
-    size_t data_size;// number of bytes in data
     struct cache_statistics_t stats;
     struct cache_params_t     params; //size parameters of the cache
     struct LN_ops_t           ln_ops; //callbacks to the lower memory hierarchy

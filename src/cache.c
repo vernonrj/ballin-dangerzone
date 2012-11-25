@@ -10,12 +10,13 @@
 #include "cache.h"
 
 
-/* Forward Declaration */
+/* Forward Declarations */
+static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address);
 static void lru_update_set(const struct cache_params_t* params, 
 			   struct set_t* set,
 			   uint16_t way);
-
-static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address);
+static void print_set(const struct cache_params_t* params,
+		      struct set_t* set);
 
   // Address access functions
 static uint32_t address_get_tag(const struct cache_params_t* params,
@@ -26,7 +27,8 @@ static uint32_t address_get_byte_offset(const struct cache_params_t* params,
 					uint32_t address);
 
 // for no op callbacks
-op_status_t null_fop(uint32_t address, size_t length, uint8_t* data){ return 0;}; 
+op_status_t null_fop(uint32_t address, size_t length, uint8_t* data)
+{ return 0;}; 
 
 
 /* Allocates a new cache object with the following parameters
@@ -91,8 +93,15 @@ void cache_reset(struct cache_t* cacheobj)
     empty_status.valid = false;
     empty_status.dirty = false;
 
+    // set lru_bits size to determine how many bits are required
     cacheobj->params.lru_bits = (uint16_t)(
 	log(cacheobj->params.associativity) / log(2));
+
+    // Reset statistics
+    cacheobj->stats.hits   = 0;
+    cacheobj->stats.misses = 0;
+    cacheobj->stats.reads  = 0;
+    cacheobj->stats.writes = 0;
 
     for(int i = 0; i < cacheobj->params.index_size; ++i)
     {
@@ -125,19 +134,48 @@ uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address)
 
     ++cacheobj->stats.writes;
     struct line_t* line = cache_access(cacheobj, address);
+    if(line->status.dirty)
+    {
+	cacheobj->ln_ops.modified(address, 
+				  cacheobj->params.line_size, 
+				  line->data);
+    }
+    line->status.dirty = true;
     return &line->data[byte_offset];
 
 }
 
 void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 {
-    //TODO implement
+    uint32_t index    = address_get_index(&cacheobj->params, address);
+    uint32_t tag      = address_get_tag(&cacheobj->params, address);
+    struct set_t* set = cacheobj->set[index];
+    
+    for(int i = 0; i < cacheobj->params.associativity; ++i)
+    {
+	if(tag == set->line[i]->tag) // match line
+	{
+	    struct line_t* line = set->line[i];
+	    if(line->status.valid && line->status.dirty) // is line dirty?
+		cacheobj->ln_ops.write(address, 
+				       cacheobj->params.line_size, 
+				       line->data); // write back
+
+	    line->status.valid = false; // invalidate line
+	    line->status.dirty = false;
+	}
+	// just ignore request if not in cache
+    }
 }
 
 void cache_print(const struct cache_t* cacheobj)
 {
-    //TODO implemnt
+    for(int i = 0; i < cacheobj->params.index_size; ++i)
+    {
+	print_set(&cacheobj->params, cacheobj->set[i]);
+    }
 }
+
 
 /******************** Internal Module Functions *******************/
 
@@ -190,14 +228,19 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
     {
 	// Evict LRU by writeback if dirty
 	if(line->status.dirty)
+	{
 	    cacheobj->ln_ops.write(address, 
 				   cacheobj->params.line_size, 
 				   line->data);
+	    cacheobj->set[index]->line[lru]->status.dirty = false;
+	}
+	// continue request
 	cacheobj->ln_ops.read(address, 
 			      cacheobj->params.line_size, 
 			      line->data);
 	line = cacheobj->set[index]->line[lru];
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
+	cacheobj->set[index]->line[lru]->status.valid = true;	    
     }
     return line;
 }
@@ -216,6 +259,39 @@ static void lru_update_set(const struct cache_params_t* params,
 	else if (set->line[way]->lru < pivot)
 	    ++set->line[way]->lru;
     }
+}
+
+static void print_set(const struct cache_params_t* params,
+		      struct set_t* set)
+{
+    // Check if the line is worth printing
+    bool valid_line = false;
+    for(int i = 0; i < params->associativity; ++i)
+    {
+	valid_line = valid_line | set->line[i]->status.valid;
+    }
+
+    if(!valid_line) return;
+
+    // Output Format
+    // VD TAG '' VD TAG '' VD TAG '' VD TAG
+    for(int i = 0; i < params->associativity; ++i)
+    {
+	struct line_t* line = set->line[i];
+	if(line->status.valid)
+	{
+	    printf("%d%d %4d %8d ", 
+		   line->status.valid, 
+		   line->status.dirty,
+		   line->lru,
+		   line->tag);
+	}
+	else
+	{
+	    printf("%17c", ' '); //Leave empty
+	}
+    }
+    printf("\n");
 }
 
 /*********************** Address access functions ***************************/
