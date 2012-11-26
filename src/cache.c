@@ -170,9 +170,10 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 
 void cache_print(const struct cache_t* cacheobj)
 {
+    printf("%11c",' ');
     for(int i = 0; i < cacheobj->params.associativity; ++i)
     {
-	printf("%11cVD TAG",' ');
+	printf("VD  LRU      TAG%1c",' ');
     }
     printf("\n");
 
