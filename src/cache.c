@@ -170,9 +170,28 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 
 void cache_print(const struct cache_t* cacheobj)
 {
+    for(int i = 0; i < cacheobj->params.associativity; ++i)
+    {
+	printf("%11cVD TAG",' ');
+    }
+    printf("\n");
+
     for(int i = 0; i < cacheobj->params.index_size; ++i)
     {
-	print_set(&cacheobj->params, cacheobj->set[i]);
+	// Check if the line is worth printing
+	bool valid_set = false;
+	struct set_t* set = cacheobj->set[i];
+
+	for(int j = 0; j < cacheobj->params.associativity; ++j)
+	{
+	    valid_set = valid_set | set->line[j]->status.valid;
+	}
+	
+	if(valid_set)
+	{
+	    printf("line: %4d ", i);
+	    print_set(&cacheobj->params, cacheobj->set[i]);
+	}
     }
 }
 
@@ -264,14 +283,6 @@ static void lru_update_set(const struct cache_params_t* params,
 static void print_set(const struct cache_params_t* params,
 		      struct set_t* set)
 {
-    // Check if the line is worth printing
-    bool valid_line = false;
-    for(int i = 0; i < params->associativity; ++i)
-    {
-	valid_line = valid_line | set->line[i]->status.valid;
-    }
-
-    if(!valid_line) return;
 
     // Output Format
     // VD TAG '' VD TAG '' VD TAG '' VD TAG
