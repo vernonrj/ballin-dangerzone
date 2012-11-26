@@ -1,0 +1,8 @@
+To run the progrm with all unit tests run
+./cachesim ../*.trace
+
+The programs arguments are
+{Program name} {List of trace files}
+
+The program will enumerate the files passed to it and execute a simulation for each one.
+Note: The cache is reset after every file.

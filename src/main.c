@@ -72,6 +72,7 @@ int main(int argc, char** argv)
 	    perror(line);
 	    continue;
 	}
+	printf("\n************ Running file: %s ************\n\n", argv[i]);
 	while(fgets(line, MAX_LINE, t_fileh)) //get line until end of file
 	{
 	    matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
