@@ -170,6 +170,11 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 
 void cache_print(const struct cache_t* cacheobj)
 {
+    printf("Cache Parameters: \n");
+    printf("Sets:%6zu Line Length: %6zu Associativity: %6zu \n",
+	   cacheobj->params.index_size,
+	   cacheobj->params.line_size,
+	   cacheobj->params.associativity);
     printf("%11c",' ');
     for(int i = 0; i < cacheobj->params.associativity; ++i)
     {
