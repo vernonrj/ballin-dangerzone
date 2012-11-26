@@ -258,27 +258,28 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
     if(-1 < invalid) // if there is an invalid use it
     {
 	line = cacheobj->set[index]->line[invalid];
-	line->status.valid = true;
 	lru_update_set(&cacheobj->params, cacheobj->set[index], invalid);
     }
     else            // if not use the lru
     {
+	line = cacheobj->set[index]->line[lru];
 	// Evict LRU by writeback if dirty
 	if(line->status.dirty)
 	{
 	    cacheobj->ln_ops.write(address, 
 				   cacheobj->params.line_size, 
 				   line->data);
-	    cacheobj->set[index]->line[lru]->status.dirty = false;
+	    line->status.dirty = false;
 	}
 	// continue request
 	cacheobj->ln_ops.read(address, 
 			      cacheobj->params.line_size, 
 			      line->data);
-	line = cacheobj->set[index]->line[lru];
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
-	cacheobj->set[index]->line[lru]->status.valid = true;	    
     }
+
+    line->status.valid = true;
+    line->tag = tag;
     return line;
 }
 
