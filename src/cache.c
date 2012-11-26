@@ -294,8 +294,8 @@ static void lru_update_set(const struct cache_params_t* params,
     {
 	if(i == way)
 	    set->line[way]->lru = 0;
-	else if (set->line[way]->lru < pivot)
-	    ++set->line[way]->lru;
+	else if (set->line[i]->lru < pivot)
+	    ++set->line[i]->lru;
     }
 }
 
