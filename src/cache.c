@@ -194,6 +194,18 @@ void cache_print(const struct cache_t* cacheobj)
 	    print_set(&cacheobj->params, cacheobj->set[i]);
 	}
     }
+    //Print Statistics
+    //hit rate = hits/(hits+misses) %
+    float hitrate = (float) cacheobj->stats.hits / 
+	((float) cacheobj->stats.hits + (float) cacheobj->stats.misses);
+
+    printf("Reads:%6zu Writes:%6zu Hits:%6zu Misses:%6zu HitRate:%4g\n",
+	   cacheobj->stats.reads,
+	   cacheobj->stats.writes,
+	   cacheobj->stats.hits,
+	   cacheobj->stats.misses,
+	   hitrate);
+
 }
 
 
