@@ -83,6 +83,30 @@ int main(int argc, char** argv)
 	    }
 	    execute(L1_instruction, L1_data, op, address);
 	}
+	//Print out simulation Cache Results
+	//hit rate = hits/(hits+misses) %
+	float hitrate = (float) L1_data->stats.hits / 
+	    ((float) L1_data->stats.hits + (float) L1_data->stats.misses);
+
+	printf("Data Cache\n");
+	printf("\nReads:%6zu Writes:%6zu Hits:%6zu Misses:%6zu HitRate:%4g\n",
+	       L1_data->stats.reads,
+	       L1_data->stats.writes,
+	       L1_data->stats.hits,
+	       L1_data->stats.misses,
+	       hitrate);
+
+	hitrate = (float) L1_instruction->stats.hits / 
+	    ((float) L1_instruction->stats.hits + (float) L1_instruction->stats.misses);
+
+	printf("Intruction Cache\n");
+	printf("\nReads:%6zu Writes:%6zu Hits:%6zu Misses:%6zu HitRate:%4g\n",
+	       L1_instruction->stats.reads,
+	       L1_instruction->stats.writes,
+	       L1_instruction->stats.hits,
+	       L1_instruction->stats.misses,
+	       hitrate);
+
 	//Clean up resources
 	if (fclose(t_fileh) == EOF)
 	    perror("Failed to release file handle, continuing anyway");
