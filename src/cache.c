@@ -223,7 +223,7 @@ void cache_print(const struct cache_t* cacheobj)
 	
 	if(valid_set)
 	{
-	    printf("line: %4d ", i);
+	    printf("set:  %4d ", i);
 	    print_set(&cacheobj->params, cacheobj->set[i]);
 	}
     }
