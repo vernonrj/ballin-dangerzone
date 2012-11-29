@@ -249,6 +249,7 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
     const struct cache_params_t* params = &cacheobj->params;
     uint32_t index = address_get_index(params, address);
     uint32_t tag   = address_get_tag(params, address);
+    uint32_t byte_offset = address_get_byte_offset(params, address);
     struct line_t* line;
     int lru     = 0;
     int invalid = -1;
@@ -293,14 +294,14 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
 	if(line->status.dirty)
 	{
 	    cacheobj->ln_ops.write(cacheobj->ln_ops.object,
-				   address, 
+				   address ^ byte_offset, 
 				   cacheobj->params.line_size, 
 				   line->data);
 	    line->status.dirty = false;
 	}
 	// continue request
 	cacheobj->ln_ops.read(cacheobj->ln_ops.object,
-			      address, 
+			      address ^ byte_offset, 
 			      cacheobj->params.line_size, 
 			      line->data);
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);
