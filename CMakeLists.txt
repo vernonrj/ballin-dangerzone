@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 0.1)
 project (cachesim)
-add_executable (cachesim src/cache.c src/cache_stub.c src/main.c)
+add_executable (cachesim src/cache.c src/main.c)
 find_library(M_LIB m)
 target_link_libraries(cachesim ${M_LIB})
 #install (TARGETS battery-info DESTINATION ~/bin)
