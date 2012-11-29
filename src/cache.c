@@ -230,7 +230,7 @@ void cache_print(const struct cache_t* cacheobj)
     float hitrate = (float) cacheobj->stats.hits / 
 	((float) cacheobj->stats.hits + (float) cacheobj->stats.misses);
 
-    printf("\nReads:%6zu Writes:%6zu Hits:%6zu Misses:%6zu HitRate:%4g\n",
+    printf("\nReads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g\n",
 	   cacheobj->stats.reads,
 	   cacheobj->stats.writes,
 	   cacheobj->stats.hits,
