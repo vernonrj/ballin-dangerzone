@@ -53,6 +53,8 @@ struct LN_ops_t
 			  uint8_t* data);
     op_status_t (*modified)(void* object, 
 			    uint32_t address);
+    op_status_t (*evicted)(void* object,
+			   uint32_t address);
     void* object; // Object to call back to
 };
 

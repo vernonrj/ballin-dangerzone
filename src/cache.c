@@ -59,6 +59,8 @@ struct cache_t* cache_new(size_t associativity,
     new_cache->ln_ops.write = interface.write ? interface.write : null_fop;
     new_cache->ln_ops.modified = 
 	interface.modified ? interface.modified : null_modified;
+    new_cache->ln_ops.evicted = 
+	interface.evicted ? interface.evicted : null_modified;
 
     //Allocate Sets
     for(int i = 0; i < index_size; ++i)
@@ -298,6 +300,11 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
 				   cacheobj->params.line_size, 
 				   line->data);
 	    line->status.dirty = false;
+	}
+	else
+	{
+	    cacheobj->ln_ops.evicted(cacheobj->ln_ops.object,
+				   address ^ byte_offset);
 	}
 	// continue request
 	cacheobj->ln_ops.read(cacheobj->ln_ops.object,
