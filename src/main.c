@@ -26,7 +26,7 @@ enum COMMANDS
 };
 
 
-/* Forward Declarations - TODO change to include cache struct */
+/* Forward Declarations*/
 void static execute(struct cache_t* instruction,
 		    struct cache_t* data, 
 		    int op, 
@@ -123,17 +123,19 @@ void static execute(struct cache_t* instruction,
 		    int op, 
 		    uint32_t address)
 {
-    //DELETE this line - For verbose checking
+    // Data Stub for read and write functions
+    uint8_t cpu_port = 0xFF;
+    
     switch(op)
     {
     case COMMAND_READ:		// (0)
-	cache_readop(data, address);
+	cache_readop(data, address, 1, &cpu_port);
 	break;
     case COMMAND_WRITE:		// (1)
-	cache_writeop(data, address);
+	cache_writeop(data, address, 1, &cpu_port);
 	break;
     case COMMAND_IFETCH:	// (2)
-	cache_readop(instruction, address);
+	cache_readop(instruction, address, 1, &cpu_port);
 	break;
     case COMMAND_INVALIDATE:	// (3)
 	cache_invalidate(data, address);

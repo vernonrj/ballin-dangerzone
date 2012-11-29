@@ -123,33 +123,53 @@ void cache_reset(struct cache_t* cacheobj)
 /******************* CACHE IMPLEMENTATION FUNCTIONS ************************/
 
 /* Do a read operation */
-uint8_t* cache_readop(struct cache_t* cacheobj, uint32_t address)
+op_status_t cache_readop(struct cache_t* cacheobj, 
+		      uint32_t address,
+		      size_t length,
+		      uint8_t* data)
 {
     uint32_t byte_offset = address_get_byte_offset(&cacheobj->params, address); 
 
     ++cacheobj->stats.reads;
     struct line_t* line = cache_access(cacheobj, address);
-    return &line->data[byte_offset];
 
+    int i;
+    for(i = 0; (i < length)&&(i < cacheobj->params.line_size); ++i)
+    {
+	data[i] = line->data[byte_offset+i];
+    }
+
+    return i; // returns number of characters written to buffer
 }
 
 
-uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address)
+op_status_t cache_writeop(struct cache_t* cacheobj, 
+			  uint32_t address,
+			  size_t length,
+			  uint8_t* data)
 {
     uint32_t byte_offset = address_get_byte_offset(&cacheobj->params, address); 
 
     ++cacheobj->stats.writes;
     struct line_t* line = cache_access(cacheobj, address);
-    if(line->status.dirty)
+
+    if(!line->status.dirty)
     {
 	cacheobj->ln_ops.modified(cacheobj->ln_ops.object, address);
     }
     line->status.dirty = true;
-    return &line->data[byte_offset];
+
+    int i;
+    for(i = 0; (i < length)&&(i < cacheobj->params.line_size); ++i)
+    {
+	line->data[byte_offset+i] = data[i];
+    }
+
+    return i; //number of characters read
 
 }
 
-void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
+op_status_t cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 {
     uint32_t index    = address_get_index(&cacheobj->params, address);
     uint32_t tag      = address_get_tag(&cacheobj->params, address);
@@ -171,6 +191,7 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 	}
 	// just ignore request if not in cache
     }
+    return 0;
 }
 
 void cache_print(const struct cache_t* cacheobj)
