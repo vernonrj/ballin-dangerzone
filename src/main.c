@@ -11,8 +11,6 @@
 #include <errno.h>
 #include "cache.h"
 
-//TODO add error.log
-
 /* Global Constants */
 static const unsigned long MAX_LINE = 1024;
 
@@ -47,6 +45,7 @@ int main(int argc, char** argv)
     L2_hooks.read = NULL;
     L2_hooks.write = NULL;
     L2_hooks.modified = NULL;
+    L2_hooks.object   = NULL;
 
     //caches
     struct cache_t *L1_instruction = cache_new(2, 1024, 64, L2_hooks);

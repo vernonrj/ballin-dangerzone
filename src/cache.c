@@ -27,9 +27,15 @@ static uint32_t address_get_byte_offset(const struct cache_params_t* params,
 					uint32_t address);
 
 // for no op callbacks
-op_status_t null_fop(uint32_t address, size_t length, uint8_t* data)
-{ return 0;}; 
+op_status_t null_fop(void* object, 
+		     uint32_t address, 
+		     size_t length, 
+		     uint8_t* data)
+{ return 0;}
 
+op_status_t null_modified(void* object,
+			  uint32_t address)
+{return 0;}
 
 /* Allocates a new cache object with the following parameters
  *
@@ -52,7 +58,7 @@ struct cache_t* cache_new(size_t associativity,
     new_cache->ln_ops.read = interface.read   ? interface.read  : null_fop;
     new_cache->ln_ops.write = interface.write ? interface.write : null_fop;
     new_cache->ln_ops.modified = 
-	interface.modified ? interface.modified : null_fop;
+	interface.modified ? interface.modified : null_modified;
 
     //Allocate Sets
     for(int i = 0; i < index_size; ++i)
@@ -136,9 +142,7 @@ uint8_t* cache_writeop(struct cache_t* cacheobj, uint32_t address)
     struct line_t* line = cache_access(cacheobj, address);
     if(line->status.dirty)
     {
-	cacheobj->ln_ops.modified(address, 
-				  cacheobj->params.line_size, 
-				  line->data);
+	cacheobj->ln_ops.modified(cacheobj->ln_ops.object, address);
     }
     line->status.dirty = true;
     return &line->data[byte_offset];
@@ -157,7 +161,8 @@ void cache_invalidate(struct cache_t* cacheobj, uint32_t address)
 	{
 	    struct line_t* line = set->line[i];
 	    if(line->status.valid && line->status.dirty) // is line dirty?
-		cacheobj->ln_ops.write(address, 
+		cacheobj->ln_ops.write(cacheobj->ln_ops.object, 
+				       address, 
 				       cacheobj->params.line_size, 
 				       line->data); // write back
 
@@ -266,13 +271,15 @@ static struct line_t* cache_access(struct cache_t* cacheobj, uint32_t address)
 	// Evict LRU by writeback if dirty
 	if(line->status.dirty)
 	{
-	    cacheobj->ln_ops.write(address, 
+	    cacheobj->ln_ops.write(cacheobj->ln_ops.object,
+				   address, 
 				   cacheobj->params.line_size, 
 				   line->data);
 	    line->status.dirty = false;
 	}
 	// continue request
-	cacheobj->ln_ops.read(address, 
+	cacheobj->ln_ops.read(cacheobj->ln_ops.object,
+			      address, 
 			      cacheobj->params.line_size, 
 			      line->data);
 	lru_update_set(&cacheobj->params, cacheobj->set[index], lru);

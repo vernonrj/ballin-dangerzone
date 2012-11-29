@@ -43,9 +43,17 @@ struct set_t
 typedef int op_status_t;
 struct LN_ops_t
 {
-    op_status_t (*read)(uint32_t address, size_t length, uint8_t* data);
-    op_status_t (*write)(uint32_t address, size_t length, uint8_t* data);
-    op_status_t (*modified)(uint32_t address, size_t length, uint8_t* data);
+    op_status_t (*read)(void* object, 
+			uint32_t address, 
+			size_t length, 
+			uint8_t* data);
+    op_status_t (*write)( void* object, 
+			  uint32_t address, 
+			  size_t length, 
+			  uint8_t* data);
+    op_status_t (*modified)(void* object, 
+			    uint32_t address);
+    void* object; // Object to call back to
 };
 
 struct cache_params_t
