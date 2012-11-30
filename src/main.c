@@ -49,8 +49,8 @@ int main(int argc, char** argv)
     L2_hooks.object   = NULL;
 
     //caches
-    struct cache_t *L1_instruction = cache_new(2, 1024, 64, L2_hooks);
-    struct cache_t *L1_data        = cache_new(4, 1024, 64, L2_hooks);
+    struct cache_t *L1_instruction = cache_new(2, 16*1024, 64, L2_hooks);
+    struct cache_t *L1_data        = cache_new(4, 16*1024, 64, L2_hooks);
 
     if(argc < 2)
     {
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
 	//Print out simulation Cache Results
 	//hit rate = hits/(hits+misses) %
 	float hitrate = (float) L1_data->stats.hits / 
-	    ((float) L1_data->stats.hits + (float) L1_data->stats.misses);
+	    ((float) L1_data->stats.hits + (float) L1_data->stats.misses) * 100.0f;
 
 	printf("\nTrace Summary:\n");
 	printf("\nData Cache\n");
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 	       hitrate);
 
 	hitrate = (float) L1_instruction->stats.hits / 
-	    ((float) L1_instruction->stats.hits + (float) L1_instruction->stats.misses);
+	    ((float) L1_instruction->stats.hits + (float) L1_instruction->stats.misses) * 100.0f;
 
 	printf("\nIntruction Cache\n");
 	printf("Reads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g\n",

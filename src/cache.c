@@ -346,7 +346,7 @@ static void print_set(const struct cache_params_t* params,
 	struct line_t* line = set->line[i];
 	if(line->status.valid)
 	{
-	    printf("%d%d %4d %8d ", 
+	    printf("%d%d %4d %8x ", 
 		   line->status.valid, 
 		   line->status.dirty,
 		   line->lru,
