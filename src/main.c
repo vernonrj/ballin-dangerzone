@@ -45,6 +45,7 @@ int main(int argc, char** argv)
     L2_hooks.read = NULL;
     L2_hooks.write = NULL;
     L2_hooks.modified = NULL;
+    L2_hooks.evicted  = NULL;
     L2_hooks.object   = NULL;
 
     //caches
