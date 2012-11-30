@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 
 	printf("\nTrace Summary:\n");
 	printf("\nData Cache\n");
-	printf("Reads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g\n",
+	printf("Reads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g%%\n",
 	       L1_data->stats.reads,
 	       L1_data->stats.writes,
 	       L1_data->stats.hits,
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 	    ((float) L1_instruction->stats.hits + (float) L1_instruction->stats.misses) * 100.0f;
 
 	printf("\nIntruction Cache\n");
-	printf("Reads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g\n",
+	printf("Reads:%6zu      Writes:%6zu      Hits:%6zu      Misses:%6zu      HitRate:%4g%%\n",
 	       L1_instruction->stats.reads,
 	       L1_instruction->stats.writes,
 	       L1_instruction->stats.hits,
