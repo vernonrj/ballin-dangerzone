@@ -1,6 +1,10 @@
-/* ECE411: Final Project
+/* ECE485: Final Project
  * Authors:
- * 
+ * Matthew Branstetter
+ * Vernon Jones
+ * Yusuf Qedan
+ * Tyler Tricker
+ *
  * Date: 19 Nov 2012
  */
 
