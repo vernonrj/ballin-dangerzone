@@ -1,9 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>   //for calculating bit vector sizes
-
-
-//TEMP INCLUDES
 #include <stdio.h>
 
 //Local includes
@@ -18,7 +15,7 @@ static void lru_update_set(const struct cache_params_t* params,
 static void print_set(const struct cache_params_t* params,
 		      struct set_t* set);
 
-  // Address access functions
+/* Address access functions */
 static uint32_t address_get_tag(const struct cache_params_t* params,
 				uint32_t address);
 static uint32_t address_get_index(const struct cache_params_t* params,
