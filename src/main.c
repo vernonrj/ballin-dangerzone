@@ -82,8 +82,15 @@ int main(int argc, char** argv)
 	    matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
 	    if (matched < 2) //TODO allow certain opcodes to not have an address
 	    {
-		fprintf(stderr, "Parsing Warning - invalid line: %s", line);
-		continue;
+		if(matched && ((op == 8) || (op == 9)))
+		{
+		    // Valid command
+		}
+		else
+		{
+		    fprintf(stderr, "Parsing Warning - invalid line: %s", line);
+		    continue;
+		}
 	    }
 	    execute(L1_instruction, L1_data, op, address);
 	}
