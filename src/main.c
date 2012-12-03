@@ -62,10 +62,6 @@ int main(int argc, char** argv)
 	return 0;
     }
 
-    /* Setup Cache */
-    
-    cache_reset(L1_instruction);
-    cache_reset(L1_data);
 
     for(int i = 1; i < argc; i++) //For every tracefile passed to the input
     {
@@ -77,6 +73,10 @@ int main(int argc, char** argv)
 	    continue;
 	}
 	printf("\n************ Running file: %s ************\n\n", argv[i]);
+	/* Setup Cache */
+	cache_reset(L1_instruction);
+	cache_reset(L1_data);
+
 	while(fgets(line, MAX_LINE, t_fileh)) //get line until end of file
 	{
 	    matched = sscanf(line, "%d%*[ \t]%x", &op, &address);
